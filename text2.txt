@@ -1,0 +1,343 @@
+
+
+Extract text from a webpage using BeautifulSoup and Python - matix.io
+matix.io
+About Us
+Our Services
+Get in Touch
+Extract text from a webpage using BeautifulSoup and Python
+February 12, 2019
+Need your scraper to bypass IP blocking or CAPTCHAs?
+If you’re going to spend time crawling the web, one task you might encounter is stripping out visible text content from HTML.
+If you’re working in Python, we can accomplish this using BeautifulSoup.
+Setting up the extraction
+To start, we’ll need to get some HTML. I’ll use 
+Troy Hunt’s recent blog post about the “Collection #1” Data Breach
+.
+Here’s how you might download the HTML:
+1
+2
+3
+4
+5
+import
+ requests
+url = 
+'https://www.troyhunt.com/the-773-million-record-collection-1-data-reach/'
+res = requests.get(url)
+html_page = res.content
+Now, we have the HTML.. but there will be a lot of clutter in there. How can we extract the information we want?
+Creating the “beautiful soup”
+We’ll use Beautiful Soup to parse the HTML as follows:
+from
+ bs4 
+ BeautifulSoup
+soup = BeautifulSoup(html_page, 
+'html.parser'
+)
+Finding the text
+BeautifulSoup provides a simple way to find text content (i.e. non-HTML) from the HTML:
+text = soup.find_all(text=
+True
+However, this is going to give us some information we don’t want.  
+Look at the output of the following statement:
+set([t.parent.name 
+for
+ t 
+in
+ text])
+# {'label', 'h4', 'ol', '[document]', 'a', 'h1', 'noscript', 'span', 'header', 'ul', 'html', 'section', 'article', 'em', 'meta', 'title', 'body', 'aside', 'footer', 'div', 'form', 'nav', 'p', 'head', 'link', 'strong', 'h6', 'br', 'li', 'h3', 'h5', 'input', 'blockquote', 'main', 'script', 'figure'}
+There are a few items in here that we likely do not want:
+[document]
+noscript
+header
+html
+meta
+head
+input
+script
+For the others, you should check to see which you want.
+Extracting the valuable text
+Now that we can see our valuable elements, we can build our output:
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+output = 
+''
+blacklist = [
+	
+'[document]'
+,
+'noscript'
+'header'
+'html'
+'meta'
+'head'
+, 
+'input'
+'script'
+# there may be more elements you don't want, such as "style", etc.
+]
+ text:
+if
+ t.parent.name 
+not
+ 
+ blacklist:
+		output += 
+'{} '
+.format(t)
+The full script
+Finally, here’s the full Python script to get text from a webpage:
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+print(output)
+Improvements
+If you look at 
+output
+ now, you’ll see that we have some things we don’t want.
+There’s some text from the header:
+Home \n \n \n Workshops \n \n \n Speaking \n \n \n Media \n \n \n About \n \n \n Contact \n \n \n Sponsor \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n   \n \n \n \n Sponsored by:
+And there’s also some text from the footer:
+\n \n \n \n \n \n Weekly Update 122 \n \n \n \n \n Weekly Update 121 \n \n \n \n \n \n \n \n Subscribe  \n \n \n \n \n \n \n \n \n \n Subscribe Now! \n \n \n \n \r\n            Send new blog posts: \n   daily \n   weekly \n \n \n \n Hey, just quickly confirm you\'re not a robot: \n  Submitting... \n Got it! Check your email, click the confirmation link I just sent you and we\'re done. \n \n \n \n \n \n \n \n Copyright 2019, Troy Hunt \n This work is licensed under a  Creative Commons Attribution 4.0 International License . In other words, share generously but provide attribution. \n \n \n Disclaimer \n Opinions expressed here are my own and may not reflect those of people I work with, my mates, my wife, the kids etc. Unless I\'m quoting someone, they\'re just my own views. \n \n \n Published with Ghost \n This site runs entirely on  Ghost  and is made possible thanks to their kind support. Read more about  why I chose to use Ghost . \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n   \n \n \n \n \n '
+If you’re just extracting text from a single site, you can probably look at the HTML and find a way to parse out only the valuable content from the page.
+Unfortunately, the internet is a messy place and you’ll have a tough time finding consensus on HTML semantics.
+Good luck!
+
+.scrolling-banner {
+  background-color: #002b36;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  margin-top: -25px;
+  padding: 20px;
+  position: sticky;
+  top: 50px;
+  border-bottom: 1px solid #fff;
+
+}
+
+.scrolling-banner a {
+  color: white;
+  text-decoration: none;
+}
+
+html, body {
+  overflow-x: unset !important;
+}
+
+
+		function ease (t) { 
+			return t<.5 ? 2*t*t : -1+(4-2*t)*t;
+		}
+
+		function getScrollTop() {
+			return (window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
+		}
+
+		var preloads = document.querySelectorAll('.blur-preload');
+		preloads.forEach(function (preload) {
+			var src = preload.getAttribute('data-preload-image');
+			var img = new Image();
+			img.addEventListener('load', function () {
+				var innerDiv = '<div class="blur-preload-inner" style="background-image: url(' + src + ')"></div>';
+				preload.innerHTML = innerDiv;
+				preload.setAttribute('data-loaded', 'true');
+			});
+			img.src = src;
+		});
+
+		document.addEventListener('scroll', function () {
+			if (window.disableScrollEvents) return;
+			var scrollTop = getScrollTop();
+			var header = document.querySelector('header');
+
+			if (scrollTop > 0) {
+				header.setAttribute('data-small', 'true');
+			} else {
+				header.setAttribute('data-small', 'false');
+			}
+		});
+
+		document.addEventListener('DOMContentLoaded', function () {
+
+			var isMenuOpen = false;
+			var isMenuPermanentlyOpen = false;
+
+			var get = function(id) { return document.getElementById(id); }
+
+			function getScrollTop() {
+				return (window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
+			}
+
+			var menuToggle = get('mobile-menu-toggle');
+			var menuItems = get('menu-items');
+			var menuBlocker = get('menu-blocker');
+			var splash = get('splash-img');
+
+			function toggleMenu () {
+				[menuItems, menuToggle, menuBlocker].forEach(function (el) {
+					el.setAttribute('data-open', isMenuOpen ? 'false' : 'true');
+				})
+				isMenuOpen = !isMenuOpen;
+			}
+
+			menuToggle.addEventListener('click', toggleMenu);
+
+			document.addEventListener('scroll', function () {
+				if (window.disableScrollEvents) return;
+				var scrollTop = getScrollTop();
+				menuItems.setAttribute('data-scrolled', scrollTop > 0 ? 'true' : 'false');
+
+				if (isMenuOpen) {
+					toggleMenu();
+				}
+
+				var val = (scrollTop > splash.offsetTop + splash.scrollHeight - menuBlocker.scrollHeight)
+
+				if (val !== isMenuPermanentlyOpen) {
+					menuBlocker.setAttribute('data-permanently-open', val);
+					menuItems.setAttribute('data-border-bottom', val);
+				}
+
+				isMenuPermanentlyOpen = val;
+			});
+
+			document.querySelectorAll('[data-scroll-to]').forEach(function (el) {
+				el.addEventListener('click', function (e) {
+					e.preventDefault();
+					e.stopPropagation();
+					window.disableScrollEvents = true;
+					var target = document.querySelector(el.getAttribute('data-scroll-to'));
+					target.scrollIntoView({ behavior: 'smooth' });
+					window.disableScrollEvents = false;
+					if (isMenuOpen) {
+						toggleMenu();
+					}
+				});
+			});
+		});
+		
+Start of Tawk.to Script
+
+	    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+	    (function(){
+	    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+	    s1.async=true;
+	    s1.src='https://embed.tawk.to/58a323eef90be509fee73211/default';
+	    s1.charset='UTF-8';
+	    s1.setAttribute('crossorigin','*');
+	    if (window.location.search.indexOf('ophqt') === -1) {
+	   	    s0.parentNode.insertBefore(s1,s0);
+	    }
+	    })();
+	    
+End of Tawk.to Script
+
+	    Tawk_API = Tawk_API || {};
+	    
+
+			// prod only
+			if (window.location.hostname === 'matix.io') {
+				// hotjar
+			    (function(h,o,t,j,a,r){
+			        h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+			        h._hjSettings={hjid:1117187,hjsv:6};
+			        a=o.getElementsByTagName('head')[0];
+			        r=o.createElement('script');r.async=1;
+			        r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+			        a.appendChild(r);
+			    })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+
+			    // ga 
+				window.dataLayer = window.dataLayer || [];
+				function gtag(){dataLayer.push(arguments);}
+				gtag('js', new Date());
+				gtag('config', 'UA-19253381-10');
+			}
+		
+A software development company
+6830 av. du Parc, Unit 420F, Montréal, QC, Canada
+
+			var get = function (id) {
+				return document.querySelector(id);
+			}
+
+			var decode = function (input) {
+				var output = '';
+				for (var i = 0; i < input.length; i += 1) {
+					output += String.fromCharCode(input[i]);
+				}
+				return output;
+			}
+
+			var email = decode([105, 110, 102, 111, 64, 109, 97, 116, 105, 120, 46, 105, 111]);
+			var phone = decode([49, 53, 49, 52, 51, 53, 56, 48, 55, 53, 50]);
+			var phonePretty = decode([43, 49, 45, 53, 49, 52, 45, 51, 53, 56, 45, 48, 55, 53, 50]);
+
+			var emailLink = document.createElement('a');
+			emailLink.href = 'mailto:' + email;
+			emailLink.innerText = email;
+			get('#footer-email').appendChild(emailLink);
+
+			var phoneLink = document.createElement('a');
+			phoneLink.href = 'tel:' + phone;
+			phoneLink.innerText = phonePretty;
+			get('#footer-tel').appendChild(phoneLink);
+		
+
+		  (function(o, u, t, p, l, a, y, _, h, q) {
+		    if (!o[p] || !o[p]._q) {
+		      for (; _ < y.length; ) l(a, y[_++]);
+		      q = u.getElementsByTagName(t)[0];h = u.createElement(t);h.async = 1;
+		      h.src = "https://cx.outplayhq.com/js/build.min.js";q.parentNode.insertBefore(h, q);o[p] = a;
+		    }
+		  })(window,document,"script","outplayhq",function(g, r) {
+		      g[r] = function() {g._q.push([r, arguments]);};
+		  },{ _q: [], _v: 1 },["init"],0);
+		  outplayhq.init("03b25dfb48558dace7f9e6805071ebb4");
+
+      (function () {
+	      function removeBranding() {
+          var iframe = document.querySelector('#av-referral-iframe');
+          var style = document.createElement('style')
+          if (iframe) {
+            style.innerText = '.outplay-meeting-book-container, .outplay-powered-by-container { display: none; }';
+            iframe.contentDocument.querySelector('head').appendChild(style);
+          } else {
+            setTimeout(removeBranding, 100);
+          }
+        };
+
+        removeBranding();
+        
+        function addClickRemoval() {
+          var iframe = document.querySelector('#av-referral-icon-iframe');
+          if (iframe) {
+            iframe.contentDocument.querySelector('html').addEventListener('click', removeBranding);
+          } else {
+            setTimeout(addClickRemoval, 100);
+          }
+        }
+    
+        addClickRemoval();
+      })();
+        
+		
